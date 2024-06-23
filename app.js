@@ -7,11 +7,19 @@ import { config as dotenvConfig } from "dotenv";
 import session from "express-session";
 import MongoStore from "connect-mongo";
 import { requireAdmin, requireLogin } from "./middleware/authMiddleware.js";
+import cors from "cors";
 
 dotenvConfig();
 
 const app = express();
 const port = 3100;
+
+app.use(
+   cors({
+      origin: "http://localhost:5173",
+      credentials: true, // allow credentials (cookies, authorization headers, etc.)
+   })
+);
 
 // Middleware to parse JSON requests
 app.use(express.json());
@@ -30,14 +38,12 @@ app.use((req, res, next) => {
 app.use(
    session({
       secret: process.env.SESSION_SECRET_KEY,
-      cookie: { maxAge: 24 * 60 * 60 * 1000 * 30 }, // = 30 days (hh:mm:ss:ms)*days
+      cookie: { maxAge: 24 * 60 * 60 * 1000 * 30, sameSite: true }, // = 30 days (hh:mm:ss:ms)*days
       saveUninitialized: false,
       resave: false,
-      saveUninitialized: false,
       store: MongoStore.create({
          mongoUrl: process.env.LOCAL_DB,
          touchAfter: 24 * 3600, // update every 24 hours
-         
       }),
    })
 );
