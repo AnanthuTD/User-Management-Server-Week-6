@@ -1,10 +1,13 @@
+"use strict";
 import express from "express";
 import {
    deleteUserById,
    getAllUsers,
    getUserById,
+   searchUsers,
    updateUserById,
 } from "../helpers/adminHelpers.js";
+import { updateProfile } from "../helpers/commonHelpers.js";
 const router = express.Router();
 
 router.get("/user", async (req, res) => {
@@ -12,7 +15,10 @@ router.get("/user", async (req, res) => {
       const users = await getAllUsers();
       res.json({ users, error: false });
    } catch (error) {
-      res.json({ error: false, msg: error.message || "Something went wrong!" });
+      res.status(500).json({
+         error: false,
+         msg: error.message || "Something went wrong!",
+      });
    }
 });
 
@@ -24,22 +30,61 @@ router.patch("/user", async (req, res) => {
          .json({ error: true, msg: "User _id not provided" });
 
    try {
-      const updatedUsr = await updateUserById(user);
-      let message = updatedUsr.matchedCount
-         ? "User updated successfully"
-         : "No matches found!";
+      const { name, _id, email, role } = user;
+      const updatedUsr = await updateUserById({ name, _id, email, role });
+      let message = "Successfully updated";
+      if (updatedUsr.matchedCount) {
+         message = "User updated successfully";
+      } else if (updatedUsr.modifiedCount) {
+         message = "Nothing to update!";
+      } else if (!updatedUsr.matchedCount) {
+         message = "No matches found!";
+      }
+
       res.json({ error: false, msg: message, count: updatedUsr.modifiedCount });
    } catch (error) {
-      res.json({ error: true, msg: error.message || "Something went wrong!" });
+      res.status(500).json({
+         error: true,
+         msg: error.message || "Something went wrong!",
+      });
    }
 });
 
-router.delete("/user", async (req, res) => {
-   const { user } = req.body;
-   if (!(user && user._id))
+router.get("/user/search", async (req, res) => {
+   const { col, query } = req.query;
+   if (!(col && query))
+      return res
+         .status(400)
+         .json({ error: true, msg: "Provide a search query" });
+
+   if (!["_id", "firstName", "lastName", "email", "role"].includes(col))
+      return res
+         .status(400)
+         .json({ error: true, msg: "Invalid search column" });
+
+   try {
+      const users = [];
+      if (col === "_id") {
+         users.push(await getUserById(query));
+      } else {
+         users.push(await searchUsers({ col, query }));
+      }
+      res.json({ users, error: false });
+   } catch (error) {
+      console.error(error);
+      res.status(500).json({
+         error: true,
+         msg: error.message || "Something went wrong!",
+      });
+   }
+});
+
+router.delete("/user/:id", async (req, res) => {
+   const { id } = req.params;
+   if (!id)
       return res.status(400).json({ error: true, msg: "Provide a user ID" });
 
-   const User = await getUserById(user._id);
+   const User = await getUserById(id);
    if (!User)
       return res.status(400).json({ error: true, msg: "Invalid user ID" });
 
@@ -49,11 +94,30 @@ router.delete("/user", async (req, res) => {
          msg: "You do not have permission to delete another admin",
       });
    try {
-      const result = await deleteUserById(user._id);
-      console.log(result);
+      await deleteUserById(id);
       res.json({ error: false, msg: "User deleted successfully" });
    } catch (error) {
-      res.json({ error: true, msg: error.message || "Something went wrong!" });
+      res.status(500).json({
+         error: true,
+         msg: error.message || "Something went wrong!",
+      });
+      console.error(error);
+   }
+});
+
+router.put("/profile", async (req, res) => {
+   const profile = req.body;
+   const user = req.session.user;
+   try {
+      const updatedUser = await updateProfile({ profile, _id: user._id });
+      res.json({
+         error: false,
+         msg: "Profile updated successfully",
+         profile: updatedUser,
+      });
+   } catch (error) {
+      res.status(500).json({ error: true, msg: error.message });
+      console.error(error);
    }
 });
 
