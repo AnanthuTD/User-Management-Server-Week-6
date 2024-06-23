@@ -1,3 +1,4 @@
 export default {
-   ACCOUNTS: 'accounts'
+   ACCOUNTS: 'accounts',
+   SESSION: 'sessions',
 }
