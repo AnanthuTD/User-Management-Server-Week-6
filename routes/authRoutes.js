@@ -45,10 +45,14 @@ router.post("/sign-up", async (req, res) => {
          return;
       }
 
+      // checking if the sign-up is called by and admin
+      const signUpByAdmin = req?.session?.user?.role === "admin" ? true : false;
+
       const newUser = {
          name: { firstName: userData.firstName, lastName: userData.lastName },
          email: userData.email,
          password: hashedPassword,
+         role: signUpByAdmin ? userData.role : "user", // if the sign-up is done by an admin, then use the role set by the admin.
       };
 
       try {
