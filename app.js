@@ -14,12 +14,7 @@ dotenvConfig();
 const app = express();
 const port = 3100;
 
-app.use(
-   cors({
-      origin: "http://localhost:5173",
-      credentials: true, // allow credentials (cookies, authorization headers, etc.)
-   })
-);
+app.use(cors());
 
 // Middleware to parse JSON requests
 app.use(express.json());
