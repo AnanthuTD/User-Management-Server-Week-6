@@ -9,7 +9,7 @@ const maxRetries = 3;
 
 export async function connectToMongoDB() {
    const URI = process.env.DB_URI;
-   const DBNAME = "week6";
+   const DBNAME = process.env.DB_NAME;
 
    while (connectionCount < maxRetries) {
       try {
