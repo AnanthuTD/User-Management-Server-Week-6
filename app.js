@@ -8,6 +8,7 @@ import session from "express-session";
 import MongoStore from "connect-mongo";
 import { requireAdmin, requireLogin } from "./middleware/authMiddleware.js";
 import cors from "cors";
+import collections from "./config/collections.js";
 
 dotenvConfig();
 
@@ -39,6 +40,7 @@ app.use(
       store: MongoStore.create({
          mongoUrl: process.env.DB_URI,
          touchAfter: 24 * 3600, // update every 24 hours
+         dbName: collections.SESSION,
       }),
    })
 );
