@@ -20,6 +20,6 @@ export async function updateProfile({ profile, _id }) {
       .findOneAndUpdate(
          { _id: objId(_id) },
          { $set: { ...cleanedProfile } },
-         { returnDocument: "after" }
+         { returnDocument: "after", projection: { password: 0, sessionId: 0 } }
       );
 }
