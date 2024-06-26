@@ -12,7 +12,7 @@ const router = express.Router();
 
 router.get("/user", async (req, res) => {
    try {
-      const users = await getAllUsers();
+      const users = await getAllUsers({ currentUserId: req.session.user._id });
       res.json({ users, error: false });
    } catch (error) {
       res.status(500).json({

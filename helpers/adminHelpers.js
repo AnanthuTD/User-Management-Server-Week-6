@@ -2,12 +2,12 @@ import collections from "../config/collections.js";
 import { getDB } from "../config/connection.js";
 import { objId } from "./mongoHelpers.js";
 
-export async function getAllUsers() {
+export async function getAllUsers({ currentUserId }) {
    const db = getDB();
 
    return await db
       .collection(collections.ACCOUNTS)
-      .find({}, { projection: { password: 0 } })
+      .find({ _id: { $ne: objId(currentUserId) } }, { projection: { password: 0 } })
       .toArray({});
 }
 
@@ -33,7 +33,11 @@ export async function deleteUserById(id) {
             { _id: objId(id) },
             { projection: { sessionId: 1 } }
          );
-      if (user?.sessionId && Array.isArray(user.sessionId) && user.sessionId.length)
+      if (
+         user?.sessionId &&
+         Array.isArray(user.sessionId) &&
+         user.sessionId.length
+      )
          destroySessions(user.sessionId);
    } catch (error) {
       throw error;
