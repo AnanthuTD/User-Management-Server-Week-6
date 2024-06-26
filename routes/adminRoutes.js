@@ -110,6 +110,7 @@ router.put("/profile", async (req, res) => {
    const user = req.session.user;
    try {
       const updatedUser = await updateProfile({ profile, _id: user._id });
+      req.session.user = updatedUser;
       res.json({
          error: false,
          msg: "Profile updated successfully",

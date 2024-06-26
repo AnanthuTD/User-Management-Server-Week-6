@@ -12,6 +12,7 @@ router.put("/profile", async (req, res) => {
          msg: "Profile updated successfully",
          profile: updatedUser,
       });
+      req.session.user = updatedUser;
    } catch (error) {
       res.status(500).json({ error: true, msg: error.message });
       console.error(error);
