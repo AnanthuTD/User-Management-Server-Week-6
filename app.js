@@ -39,7 +39,7 @@ app.use(
       resave: false,
       store: MongoStore.create({
          mongoUrl: process.env.DB_URI,
-         touchAfter: 24 * 3600, // update every 24 hours
+         // touchAfter: 24 * 3600, // update every 24 hours
          dbName: process.env.DB_NAME,
       }),
    })
