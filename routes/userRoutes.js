@@ -1,6 +1,4 @@
 import express from "express";
-import { hashPassword } from "../helpers/authHelpers.js";
-import { createUser } from "../helpers/userHelpers.js";
 import { updateProfile } from "../helpers/commonHelpers.js";
 const router = express.Router();
 
