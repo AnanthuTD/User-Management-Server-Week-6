@@ -149,8 +149,8 @@ router.post("/sign-in/google", async (req, res) => {
       const extractedUser = {
          email: payload.email,
          name: {
-            first: payload.given_name,
-            last: payload.family_name,
+            firstName: payload.given_name,
+            lastName: payload.family_name,
          },
       };
 
