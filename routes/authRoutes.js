@@ -2,11 +2,13 @@ import express from "express";
 import { createUser, getUserByEmail } from "../helpers/userHelpers.js";
 import {
    comparePassword,
+   createOrUpsertUserGoogle,
    hashPassword,
    linkSessionAndUser,
    validateEmail,
    validatePassword,
 } from "../helpers/authHelpers.js";
+import { OAuth2Client } from "google-auth-library";
 const router = express.Router();
 
 router.get("/", (req, res) => {
@@ -125,6 +127,46 @@ router.post("/login", async (req, res) => {
    linkSessionAndUser({ sessionId: req.session.id, accountId: user._id });
 
    res.status(200).json({ msg: "Logged in!", user });
+});
+
+router.post("/sign-in/google", async (req, res) => {
+   const { credential } = req.body;
+   const idToken = credential;
+
+   const { CLIENT_ID } = process.env;
+
+   const client = new OAuth2Client(CLIENT_ID);
+
+   try {
+      // Verify the ID token using the OAuth2Client
+      const ticket = await client.verifyIdToken({
+         idToken,
+         audience: CLIENT_ID,
+      });
+
+      const payload = ticket.getPayload();
+
+      const extractedUser = {
+         email: payload.email,
+         name: {
+            first: payload.given_name,
+            last: payload.family_name,
+         },
+      };
+
+      const user = await createOrUpsertUserGoogle(extractedUser);
+
+      req.session.user = user;
+
+      res.status(201).json({
+         error: false,
+         msg: "User created successfully!",
+         user,
+      });
+   } catch (error) {
+      res.status(400).json({ message: "Signin Failed" });
+      console.error("Error verifying token:", error);
+   }
 });
 
 router.post("/logout", (req, res) => {
